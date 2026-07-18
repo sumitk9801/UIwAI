@@ -3,7 +3,7 @@ import { generateToken } from "../config/token.js";
 
 export const googleAuth = async(req,res)=>{
     try{
-        const {name,email} = req.user;
+        const {name,email} = req.body;
         const user = await User.findOne({email});
         if(!user){
             const newUser = new User({
@@ -18,7 +18,7 @@ export const googleAuth = async(req,res)=>{
                 secure:false,
                 sameSite:"strict",
                 maxAge:7*24*60*60*1000});
-            res.status(200).json({message:"User created and logged in successfully", user:newUser});
+            return res.status(200).json({message:"User created and logged in successfully", user:newUser});
 
         }
     } catch(error){

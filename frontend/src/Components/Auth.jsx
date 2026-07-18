@@ -35,7 +35,7 @@ function Auth({ onClose }) {
         let User = response.user
         let name = User.displayName
         let email = User.email
-        const result = await axios.post(ServerUrl+ "/api/auth/googlesignup" , {name , email}, {withCredentials:true})
+        const result = await axios.post(ServerUrl+ "/api/auth/googleSignup" , {name , email}, {withCredentials:true})
         dispatch(setUserData(result.data))
         onClose()
       
@@ -84,7 +84,7 @@ function Auth({ onClose }) {
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#3be8ff] to-[#0ab5d4] flex items-center justify-center shadow-[0_0_18px_rgba(59,232,255,0.35)]">
               <SiValorant size={17} color="#051c20" />
             </div>
-            <span className="text-xl font-bold text-[#e8f8fa] tracking-tight" style={{ fontFamily:"'Syne',sans-serif" }}>VirtualAI</span>
+            <span className="text-xl font-bold text-[#e8f8fa] tracking-tight" style={{ fontFamily:"'Syne',sans-serif" }}>UIwAI</span>
           </motion.div>
 
           <p className="text-[10px] font-semibold tracking-[3px] text-[#3be8ff] uppercase mb-4 sm:mb-5">How it works</p>

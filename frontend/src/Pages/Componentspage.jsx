@@ -94,14 +94,14 @@ function GuidePanel() {
             <p className="text-xs text-white/40 mb-2 flex items-center gap-1.5">
               <span className="text-[#3be8ff]/60 font-bold">01</span> Install the package
             </p>
-            <CodeBlock code={`npm install virtual-ui-lib`} lang="bash" />
+            <CodeBlock code={`npm install uiwai-lib`} lang="bash" />
           </div>
 
           <div>
             <p className="text-xs text-white/40 mb-2 flex items-center gap-1.5">
               <span className="text-[#3be8ff]/60 font-bold">02</span> Import your component
             </p>
-            <CodeBlock code={`import { ComponentName } from "virtual-ui-lib";`} lang="jsx" />
+            <CodeBlock code={`import { ComponentName } from "uiwai-lib";`} lang="jsx" />
           </div>
 
           <div>
@@ -109,7 +109,7 @@ function GuidePanel() {
               <span className="text-[#3be8ff]/60 font-bold">03</span> Use in your App.jsx
             </p>
             <CodeBlock
-              code={`import { UserAvatar, PricingCard } from "virtual-ui-lib";\n\nexport default function App() {\n  return (\n    <div>\n      <UserAvatar src="/user.png" />\n      <PricingCard title="Pro" price={99} />\n    </div>\n  );\n}`}
+              code={`import { UserAvatar, PricingCard } from "uiwai-lib";\n\nexport default function App() {\n  return (\n    <div>\n      <UserAvatar src="/user.png" />\n      <PricingCard title="Pro" price={99} />\n    </div>\n  );\n}`}
               lang="jsx"
             />
           </div>
@@ -127,8 +127,8 @@ function GuidePanel() {
 function DetailPanel({ component, onBack }) {
   const [activeTab, setActiveTab] = useState("preview");
 
-  const importCode = `import { ${component.name} } from "virtual-ui-lib";`;
-  const usageCode = `import { ${component.name} } from "virtual-ui-lib";\n\nexport default function App() {\n  return (\n    <div>\n      <${component.name}${
+  const importCode = `import { ${component.name} } from "uiwai-lib";`;
+  const usageCode = `import { ${component.name} } from "uiwai-lib";\n\nexport default function App() {\n  return (\n    <div>\n      <${component.name}${
     component.props?.length
       ? `\n        ${component.props.map((p) => `${p}={/* value */}`).join("\n        ")}`
       : ""
@@ -242,7 +242,7 @@ function DetailPanel({ component, onBack }) {
                 <p className="text-xs font-semibold text-white/50 mb-3 flex items-center gap-2">
                   <TbBrandNpm size={13} /> Install
                 </p>
-                <CodeBlock code={`npm install virtual-ui-lib`} lang="bash" />
+                <CodeBlock code={`npm install uiwai`} lang="bash" />
               </div>
 
               <div>
