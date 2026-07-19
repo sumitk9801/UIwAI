@@ -29,5 +29,7 @@ export const openRouter = async(message)=>{
     }catch(error){
         console.error("openROuter Error",error.response?.data||error.message);
         throw new Error("openRouter Api Error");
+
+        
     }
 }
