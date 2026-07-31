@@ -4,12 +4,12 @@ import { FcGoogle } from "react-icons/fc";
 import { HiSparkles } from "react-icons/hi2";
 import { TbCopy, TbSettings, TbDownload, TbLogin2, TbX } from "react-icons/tb";
 import { SiValorant } from "react-icons/si";
-import { auth, provider } from "../utils/firebase.js";
+import { auth, provider } from "../utils/firebase";
 import { signInWithPopup } from "firebase/auth";
 import axios from "axios"
 import { ServerUrl } from "../App";
 import { useDispatch } from "react-redux";
-import { setUserData } from "../redux/userSlice.js";
+import { setUserData } from "../redux/userSlice";
 
 const steps = [
   { icon: TbLogin2,   title: "Login with Google",   desc: "Secure OAuth to unlock all AI tools instantly." },
@@ -35,7 +35,7 @@ function Auth({ onClose }) {
         let User = response.user
         let name = User.displayName
         let email = User.email
-        const result = await axios.post(ServerUrl+ "/api/auth/googleSignup" , {name , email}, {withCredentials:true})
+        const result = await axios.post(ServerUrl+ "/api/auth/googlesignup" , {name , email}, {withCredentials:true})
         dispatch(setUserData(result.data))
         onClose()
       

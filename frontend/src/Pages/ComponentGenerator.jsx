@@ -44,8 +44,8 @@ export default function ComponentGenerator() {
   const [isPublished, setIsPublished]         = useState(false);
 
   const { userData } = useSelector((state) => state.user);
-  const userRole     = userData.role;
-  const aiCredits    = userData.aiCredits ?? 0;
+  const userRole     = userData?.role;
+  const aiCredits    = userData?.aiCredits ?? 0;
   const lowCredits   = userRole === "user" && aiCredits < 50;
 
   const navigate = useNavigate();

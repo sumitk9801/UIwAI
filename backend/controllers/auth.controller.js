@@ -5,22 +5,33 @@ export const googleAuth = async(req,res)=>{
     try{
         const {name,email} = req.body;
         const user = await User.findOne({email});
+        
         if(!user){
             const newUser = new User({
                 name,
                 email
             });
             await newUser.save();
-            res.status(201).json({message:"User created successfully", user:newUser});
             const token = await generateToken(newUser._id);
             res.cookie("token",token,{
                 httpOnly:true,
                 secure:false,
                 sameSite:"strict",
-                maxAge:7*24*60*60*1000});
-            return res.status(200).json({message:"User created and logged in successfully", user:newUser});
-
+                maxAge:7*24*60*60*1000
+            });
+            return res.status(201).json({message:"User created and logged in successfully", user:newUser});
         }
+        
+        // User already exists
+        const token = await generateToken(user._id);
+        res.cookie("token",token,{
+            httpOnly:true,
+            secure:false,
+            sameSite:"strict",
+            maxAge:7*24*60*60*1000
+        });
+        return res.status(200).json({message:"User logged in successfully", user:user});
+        
     } catch(error){
         console.log(error.message);
         res.status(500).json({message:"Internal server error"});

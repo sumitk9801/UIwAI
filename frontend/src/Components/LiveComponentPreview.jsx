@@ -1,7 +1,65 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+  useReducer,
+  useLayoutEffect,
+} from "react";
 import { LiveProvider, LivePreview, LiveError } from "react-live";
 import { motion } from "motion/react";
 import { FiRefreshCw } from "react-icons/fi";
+
+const tryParseJson = (input) => {
+  try {
+    return JSON.parse(input);
+  } catch {
+    return null;
+  }
+};
+
+const decodeBase64 = (value) => {
+  try {
+    return atob(value);
+  } catch {
+    return null;
+  }
+};
+
+const normalizeCodeValue = (value) => {
+  if (value && typeof value === "object") {
+    if (typeof value.code === "string") return normalizeCodeValue(value.code);
+    if (typeof value.code_b64 === "string") return decodeBase64(value.code_b64) || "";
+    return "";
+  }
+
+  if (typeof value !== "string") return "";
+
+  const parsed = tryParseJson(value.trim());
+
+  if (typeof parsed === "string") return parsed;
+  if (parsed && typeof parsed === "object") return normalizeCodeValue(parsed);
+
+  if (/\\[nrt"'\\]/.test(value)) {
+    const wrapped = `"${value.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
+    const unescaped = tryParseJson(wrapped);
+    if (typeof unescaped === "string") return unescaped;
+  }
+
+  return value;
+};
+
+const sanitizeComponentCode = (source) =>
+  source
+    .replace(/^\s*["']use client["'];?\s*$/gm, "")
+    .replace(/^\s*import\s+.*?from\s+["'].*?["'];?\s*$/gm, "")
+    .replace(/^\s*import\s+["'].*?["'];?\s*$/gm, "")
+    .replace(/^\s*export\s+default\s+/gm, "")
+    .replace(/^\s*export\s+/gm, "")
+    .replace(/position\s*:\s*["']fixed["']/g, 'position: "absolute"')
+    .replace(/position\s*:\s*`fixed`/g, 'position: "absolute"')
+    .replace(/\bfixed\b/g, "absolute");
 
 export default function LiveComponentPreview({ code }) {
   const [refreshKey, setRefreshKey] = useState(0);
@@ -10,22 +68,38 @@ export default function LiveComponentPreview({ code }) {
     setRefreshKey((prev) => prev + 1);
   };
 
+  // ─── Decode escaped code strings if needed ─────────────────────────────────────
+  const codeString = normalizeCodeValue(code);
+
   // ─── Sanitize Code ─────────────────────────────────────
-  let sanitized = code
-    .replace(/import\s+.*?from\s+["'].*?["'];?/g, "")
-    .replace(/export\s+/g, "");
+  const sanitized = sanitizeComponentCode(codeString);
 
-  sanitized = sanitized
-    .replace(/position\s*:\s*["']fixed["']/g, 'position: "absolute"')
-    .replace(/position\s*:\s*`fixed`/g, 'position: "absolute"')
-    .replace(/\bfixed\b/g, "absolute");
-
-  const match = sanitized.match(/const\s+([A-Z]\w+)/);
+  const match = sanitized.match(/(?:^|\n)\s*(?:export\s+default\s+)?(?:const|function|class)\s+([A-Z][\w$]*)\b/);
   const componentName = match ? match[1] : null;
 
   const wrappedCode = componentName
-    ? `${sanitized}\n\nrender(<${componentName} />)`
+    ? `${sanitized}\n\nrender(<${componentName} />);`
     : sanitized;
+
+  if (!componentName && !sanitized.trim()) {
+    return (
+      <div
+        style={{
+          padding: "20px",
+          borderRadius: "12px",
+          background: "#111827",
+          color: "#e5e7eb",
+          minHeight: "300px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "14px",
+        }}
+      >
+        No preview available. Generate a component to see it here.
+      </div>
+    );
+  }
 
   return (
     <div
@@ -59,8 +133,17 @@ export default function LiveComponentPreview({ code }) {
       <LiveProvider
         key={refreshKey}
         code={wrappedCode}
-        scope={{ React, useState, useEffect, useRef, useCallback }}
-        noInline
+        noInline={Boolean(componentName)}
+        scope={{
+          React,
+          useState,
+          useEffect,
+          useRef,
+          useCallback,
+          useMemo,
+          useReducer,
+          useLayoutEffect,
+        }}
       >
         {/* 🔥 MAIN CONTAINER */}
         <motion.div

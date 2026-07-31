@@ -1,20 +1,20 @@
-import  { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import axios from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
 
-import Home from './Pages/Home.jsx';
-import AdminDashboard from './Pages/AdminDashboard.jsx';
-import ComponentGenerator from './Pages/ComponentGenerator.jsx';
-import PricingPage from './Pages/Pricingpage.jsx';
-import ComponentsPage from './Pages/Componentspage.jsx';
-import MyComponentsPage from './Pages/MyComponentsPage.jsx';
+import Home from './pages/Home';
+import AdminDashboard from './pages/AdminDashboard';
+import ComponentGenerator from './pages/ComponentGenerator';
+import PricingPage from './pages/Pricingpage';
+import ComponentsPage from './pages/Componentspage';
+import MyComponentsPage from "./Pages/MyComponentsPage"
 
 import {
   setAllComponents,
   setAllUsers,
   setUserData
-} from "./redux/userSlice.js";
+} from './redux/userSlice';
 
 export const ServerUrl = "http://localhost:8000";
 
@@ -34,8 +34,7 @@ function App() {
         );
         dispatch(setUserData(res.data));
       } catch (error) {
-        dispatch(setUserData(null));
-        console.log(error) // guest user
+        dispatch(setUserData(null)); // guest user
       } finally {
         setAuthChecked(true);
       }

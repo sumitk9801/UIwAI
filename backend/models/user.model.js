@@ -15,11 +15,11 @@ const UserSchema = new mongoose.Schema({
     enum:["user","admin"],
     default:"user"
    },
-   AiCradits:{
+   aiCredits:{
     type:Number,
-    default:150 
+    default:500
    }
-},{timestamp:true})
+},{timestamps:true})
 
 const User = mongoose.model("User", UserSchema);
 export default User;

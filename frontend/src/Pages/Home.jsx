@@ -110,7 +110,7 @@ export default function Home() {
           <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#3be8ff] to-[#0ab5d4] flex items-center justify-center shadow-[0_0_14px_rgba(59,232,255,0.4)]">
             <SiValorant size={15} color="#051c20" />
           </div>
-          <span className="text-lg font-bold tracking-tight" style={{ fontFamily:"'Syne',sans-serif" }}>VirtualAI</span>
+          <span className="text-lg font-bold tracking-tight" style={{ fontFamily:"'Syne',sans-serif" }}>UIwAI</span>
         </div>
 
         <div className="hidden md:flex items-center gap-6 lg:gap-8 text-sm text-white/50">
