@@ -243,7 +243,7 @@ export default function Home() {
         <motion.p {...fadeUp(0.2)}
           className="text-white/50 text-base sm:text-lg max-w-xl mx-auto leading-relaxed mb-8 sm:mb-10 font-light px-2"
         >
-          Use prebuilt VirtualUI components or generate custom ones with AI.
+          Use prebuilt UIwAI components or generate custom ones with AI.
           Copy clean JSX directly into your project in seconds.
         </motion.p>
 
@@ -402,7 +402,7 @@ export default function Home() {
             <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#3be8ff] to-[#0ab5d4] flex items-center justify-center">
               <SiValorant size={11} color="#051c20" />
             </div>
-            <span className="text-sm font-semibold text-white/60">VirtualAI</span>
+            <span className="text-sm font-semibold text-white/60">UIwAI</span>
           </div>
           <div className="flex flex-wrap justify-center gap-4 sm:gap-5 text-xs text-white/30">
          
@@ -410,7 +410,7 @@ export default function Home() {
             
             <a className="hover:text-white/60 transition-colors">admin@uiwai.com</a>
           </div>
-          <p className="text-xs text-white/25 order-last sm:order-none">© {new Date().getFullYear()} VirtualAI. All rights reserved.</p>
+          <p className="text-xs text-white/25 order-last sm:order-none">© {new Date().getFullYear()} UIwAI. All rights reserved.</p>
         </div>
       </footer>
 

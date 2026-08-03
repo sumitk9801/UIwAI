@@ -18,7 +18,6 @@ const tryParseJson = (input) => {
     return null;
   }
 };
-
 const decodeBase64 = (value) => {
   try {
     return atob(value);
@@ -52,29 +51,31 @@ const normalizeCodeValue = (value) => {
 
 const sanitizeComponentCode = (source) =>
   source
-    .replace(/^\s*["']use client["'];?\s*$/gm, "")
-    .replace(/^\s*import\s+.*?from\s+["'].*?["'];?\s*$/gm, "")
-    .replace(/^\s*import\s+["'].*?["'];?\s*$/gm, "")
-    .replace(/^\s*export\s+default\s+/gm, "")
-    .replace(/^\s*export\s+/gm, "")
+    // Remove "use client" anywhere
+    .replace(/["']use client["'];?/g, "")
+    // Remove import statements (even if they share a line)
+    .replace(/import\s+.*?from\s+["'].*?["'];?/g, "")
+    // Remove other generic imports
+    .replace(/import\s+["'].*?["'];?/g, "")
+    // Remove "export default"
+    .replace(/export\s+default\s+/g, "")
+    // Remove "export"
+    .replace(/export\s+/g, "")
+    // Handle fixed positioning
     .replace(/position\s*:\s*["']fixed["']/g, 'position: "absolute"')
-    .replace(/position\s*:\s*`fixed`/g, 'position: "absolute"')
-    .replace(/\bfixed\b/g, "absolute");
+    .replace(/position\s*:\s*`fixed`/g, 'position: "absolute"');
 
 export default function LiveComponentPreview({ code }) {
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const refreshPreview = () => {
-    setRefreshKey((prev) => prev + 1);
-  };
+  const refreshPreview = () => setRefreshKey((prev) => prev + 1);
 
-  // ─── Decode escaped code strings if needed ─────────────────────────────────────
   const codeString = normalizeCodeValue(code);
-
-  // ─── Sanitize Code ─────────────────────────────────────
   const sanitized = sanitizeComponentCode(codeString);
 
-  const match = sanitized.match(/(?:^|\n)\s*(?:export\s+default\s+)?(?:const|function|class)\s+([A-Z][\w$]*)\b/);
+  // UPDATED REGEX: Find the first capitalized word after const/function/class
+  // Doesn't care if it's at the start of a line anymore!
+  const match = sanitized.match(/(?:const|function|class)\s+([A-Z][\w$]*)\b/);
   const componentName = match ? match[1] : null;
 
   const wrappedCode = componentName

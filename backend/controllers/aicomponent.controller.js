@@ -1,4 +1,6 @@
 import User from "../models/user.model.js";
+import dotenv from "dotenv";
+dotenv.config();
 import { gemini } from "../utils/gemini.js";
 import { openRouter } from "../utils/openRouter.js";
 import { validateReactComponent } from "../validators/reactValidator.js";
@@ -24,29 +26,17 @@ Output format:
 }
 
 Rules:
-
 - Use React functional component.
-- Export using:
-  export const ComponentName = ({ ...props }) => { ... }
-
+- Export using: export const ComponentName = ({ ...props }) => { ... }
 - Import only from "react".
-
 - No Tailwind.
-
 - No CSS files.
-
 - No styled-components.
-
 - No external libraries.
-
 - Inline styles only.
-
 - Component must be self-contained.
-
 - Every prop must have a default value.
-
 - Return complete JSX.
-
 - The JSON must be directly parsable using JSON.parse().
 `;
 
@@ -82,10 +72,8 @@ const parseAiResponse = (response) => {
   } catch (err) {
     console.error("========== AI RAW RESPONSE ==========");
     console.error(response);
-
     console.error("========== EXTRACTED JSON ==========");
     console.error(jsonText);
-
     throw new Error("AI returned invalid JSON.");
   }
 };
@@ -100,7 +88,6 @@ const normalizeProps = (props) => {
   if (typeof props === "string") {
     try {
       const parsed = JSON.parse(props);
-
       if (Array.isArray(parsed)) {
         return parsed;
       }
@@ -134,9 +121,23 @@ const validateComponent = (component) => {
   return component;
 };
 
+// Moved getAiProvider UP before askAi to avoid hoisting issues
+const getAiProvider = (provider) => {
+  const selected = (provider || process.env.AI_PROVIDER || "openrouter").toLowerCase();
+
+  switch (selected) {
+    case "gemini":
+      return gemini;
+    case "openrouter":
+      return openRouter;
+    default:
+      throw new Error("Unsupported AI Provider.");
+  }
+};
+
+// askAi is completely fine as written!
 const askAi = async (providerName, messages) => {
   const provider = getAiProvider(providerName);
-
   return await provider(messages);
 };
 
@@ -144,8 +145,7 @@ const repairJson = async (providerName, invalidResponse) => {
   return askAi(providerName, [
     {
       role: "system",
-      content:
-        "The following text contains invalid JSON. Return ONLY corrected JSON. No markdown. No explanation.",
+      content: "The following text contains invalid JSON. Return ONLY corrected JSON. No markdown. No explanation.",
     },
     {
       role: "user",
@@ -153,182 +153,157 @@ const repairJson = async (providerName, invalidResponse) => {
     },
   ]);
 };
+
+// ==========================================
+// NEW HELPER FUNCTIONS (Place these above generateComponent)
+// ==========================================
+
+// This strips out markdown backticks that the AI often sneaks into the code string
+const cleanReactCode = (code) => {
+  if (!code) return code;
+  return code
+    .replace(/```(?:jsx|javascript|js|tsx|ts)?\n?/gi, "")
+    .replace(/```/g, "")
+    .trim();
+};
+
+// This specifically asks the AI to fix bad React syntax, NOT bad JSON
+const repairReactCode = async (providerName, invalidCode) => {
+  const response = await askAi(providerName, [
+    {
+      role: "system",
+      content: "The following React component code has syntax errors. Return ONLY the corrected raw React code. No markdown formatting, no explanations, no backticks. Just the code.",
+    },
+    {
+      role: "user",
+      content: invalidCode,
+    },
+  ]);
+  
+  // The AI might still return markdown as a text string, so we clean it again
+  const textResponse = typeof response === "object" ? JSON.stringify(response) : response;
+  return cleanReactCode(textResponse); 
+};
+
+// ==========================================
+// UPDATED generateComponent FUNCTION
+// ==========================================
+
 export const generateComponent = async (req, res) => {
   try {
     const { prompt, provider } = req.body;
 
     if (!prompt || typeof prompt !== "string" || !prompt.trim()) {
-      return res.status(400).json({
-        message: "Prompt is required.",
-      });
+      return res.status(400).json({ message: "Prompt is required." });
     }
 
     const user = await User.findById(req.userId);
 
     if (!user) {
-      return res.status(404).json({
-        message: "User not found.",
-      });
+      return res.status(404).json({ message: "User not found." });
     }
 
     const currentCredits = user.aiCredits ?? user.AiCradits ?? 0;
 
     if (user.role === "user" && currentCredits < 50) {
-      return res.status(400).json({
-        message: "Not enough AI credits.",
-      });
+      return res.status(400).json({ message: "Not enough AI credits." });
     }
 
-    const primaryProvider =
-      (provider || process.env.AI_PROVIDER || "openrouter").toLowerCase();
-
-    const backupProvider =
-      primaryProvider === "gemini"
-        ? "openrouter"
-        : "gemini";
+    const primaryProvider = (provider || process.env.AI_PROVIDER || "openrouter").toLowerCase();
+    const backupProvider = primaryProvider === "gemini" ? "openrouter" : "gemini";
 
     let rawResponse = null;
     let parsed = null;
     let usedProvider = primaryProvider;
 
-    // -----------------------------
-    // GENERATION FUNCTION
-    // -----------------------------
-
     const generateWithProvider = async (providerName) => {
-
       const messages = [
-        {
-          role: "system",
-          content: componentSystemPrompt,
-        },
-        {
-          role: "user",
-          content: prompt.trim(),
-        },
+        { role: "system", content: componentSystemPrompt },
+        { role: "user", content: prompt.trim() },
       ];
-
       return await askAi(providerName, messages);
     };
 
     // -----------------------------
-    // PRIMARY PROVIDER
+    // GENERATE INITIAL RESPONSE
     // -----------------------------
-
     try {
-
       console.log(`Using AI Provider: ${primaryProvider}`);
-
       rawResponse = await generateWithProvider(primaryProvider);
-
     } catch (err) {
-
-      console.error(
-        `Primary Provider Failed (${primaryProvider})`,
-        err.message
-      );
-
+      console.error(`Primary Provider Failed (${primaryProvider})`, err.message);
       try {
-
         console.log(`Trying Backup Provider: ${backupProvider}`);
-
         rawResponse = await generateWithProvider(backupProvider);
-
         usedProvider = backupProvider;
-
       } catch (backupErr) {
-
-        console.error(
-          `Backup Provider Failed (${backupProvider})`,
-          backupErr.message
-        );
-
-        return res.status(500).json({
-          message: "Both AI providers failed.",
-        });
+        console.error(`Backup Provider Failed (${backupProvider})`, backupErr.message);
+        return res.status(500).json({ message: "Both AI providers failed." });
       }
     }
 
     // -----------------------------
-    // PARSE RESPONSE
+    // 1. PARSE & VALIDATE JSON
     // -----------------------------
-
     try {
-
-      parsed = validateComponent(
-        parseAiResponse(rawResponse)
-      );
-      parsed.code = repairComponent(parsed.code);
-
-      const validation = validateReactComponent(parsed.code);
-
-      if (!validation.valid) {
-
-           console.log("Retrying generation...");
-
-      }
-
+      parsed = validateComponent(parseAiResponse(rawResponse));
     } catch (parseError) {
-
-      console.warn("Initial parsing failed.");
-
+      console.warn("Initial JSON parsing failed. Attempting JSON repair...");
       try {
-
-        console.log("Attempting JSON repair...");
-
-        const repairedResponse = await repairJson(
-          usedProvider,
-          rawResponse
-        );
-
-        parsed = validateComponent(
-          parseAiResponse(repairedResponse)
-        );
-
+        const repairedResponse = await repairJson(usedProvider, rawResponse);
+        parsed = validateComponent(parseAiResponse(repairedResponse));
       } catch (repairError) {
-
-        console.error("Repair Failed");
-
-        console.error(repairError);
-
+        console.error("JSON Repair Failed:", repairError);
         return res.status(500).json({
-          message:
-            "AI generated an invalid component. Please try again.",
+          message: "AI generated invalid JSON that could not be repaired.",
         });
       }
     }
 
     // -----------------------------
-    // BASIC REACT VALIDATION
+    // 2. CLEAN & VALIDATE REACT CODE
     // -----------------------------
+    parsed.code = cleanReactCode(parsed.code);
+    let validation = validateReactComponent(parsed.code);
 
-    if (
-      !parsed.code.includes("export const")
-    ) {
+    if (!validation.valid) {
+      console.log("React validation failed, triggering React code repair...");
+      try {
+        const fixedCode = await repairReactCode(usedProvider, parsed.code);
+        parsed.code = fixedCode;
+        
+        // Check if the AI actually fixed it
+        validation = validateReactComponent(parsed.code);
+        if (!validation.valid) {
+          throw new Error("AI could not fix the React syntax.");
+        }
+      } catch (codeRepairErr) {
+        console.error("React Code Repair Failed:", codeRepairErr.message);
+        return res.status(500).json({
+          message: "Generated React component had invalid syntax and could not be repaired.",
+        });
+      }
+    }
+
+    // -----------------------------
+    // FINAL SANITY CHECKS
+    // -----------------------------
+    if (!parsed.code.includes("export const")) {
       return res.status(500).json({
-        message:
-          "Generated component is incomplete.",
+        message: "Generated component is incomplete.",
       });
     }
 
-    if (
-      !parsed.code.includes("import React")
-    ) {
-      parsed.code =
-        `import React from "react";\n\n` +
-        parsed.code;
+    if (!parsed.code.includes("import React")) {
+      parsed.code = `import React from "react";\n\n` + parsed.code;
     }
 
     // -----------------------------
     // DEDUCT CREDITS
     // -----------------------------
-
     if (user.role === "user") {
-
       user.aiCredits = currentCredits - 50;
-
       await user.save();
-
     }
 
     console.log("================================");
@@ -338,46 +313,17 @@ export const generateComponent = async (req, res) => {
     console.log("================================");
 
     return res.status(200).json({
-
       success: true,
-
       parsed,
-
       provider: usedProvider,
-
-      remainingCredits:
-        user.role === "user"
-          ? user.aiCredits
-          : null,
-
+      remainingCredits: user.role === "user" ? user.aiCredits : null,
     });
-
   } catch (err) {
-
     console.error("Generate Component Error");
-
     console.error(err);
-
     return res.status(500).json({
       success: false,
-      message:
-        err.message || "Internal Server Error",
+      message: err.message || "Internal Server Error",
     });
-  }
-};
-
-const getAiProvider = (provider) => {
-  const selected =
-    (provider || process.env.AI_PROVIDER || "openrouter").toLowerCase();
-
-  switch (selected) {
-    case "gemini":
-      return gemini;
-
-    case "openrouter":
-      return openRouter;
-
-    default:
-      throw new Error("Unsupported AI Provider.");
   }
 };

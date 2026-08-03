@@ -73,7 +73,7 @@ export default function ComponentGenerator() {
 
        dispatch(
   setUserData({
-    ...userData,
+    ...(userData || {}),
     aiCredits: data.remainingCredits
   })
 );
@@ -161,6 +161,11 @@ export default function ComponentGenerator() {
 
         {/* ── Header ── */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
+          <div className="back">
+            <a href="/" className="text-white/40 hover:text-white transition-colors">
+              <FiArrowLeft size={20} />
+            </a>
+          </div>
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-6"
             style={{ background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.3)" }}>
             <FiCpu size={14} className="text-indigo-400" />

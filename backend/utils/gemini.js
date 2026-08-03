@@ -2,7 +2,7 @@ import axios from "axios";
 import dotenv from "dotenv"
 dotenv.config();
 const GEMINI_MODEL =
-  process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
+  process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
 
 const buildContents = (messages) => {
   return messages
