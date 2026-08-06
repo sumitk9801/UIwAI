@@ -2,7 +2,7 @@ import axios from "axios";
 
 const PRIMARY_MODEL =
   process.env.OPENROUTER_MODEL ||
-  "google/gemma-4-26b-a4b-it:free";
+  "deepseek/deepseek-v4-flash-0731"
 
 const FALLBACK_MODELS = [
   "nvidia/nemotron-3-super-120b-a12b:free",
