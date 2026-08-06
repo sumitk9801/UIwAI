@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import Home from './Pages/Home.jsx';
 import AdminDashboard from './Pages/AdminDashboard.jsx';
 import ComponentGenerator from './Pages/ComponentGenerator.jsx';
-import PricingPage from './Pages/Pricingpage.jsx';
+import PricingPage from './Pages/PricingPage.jsx';
 import ComponentsPage from './Pages/Componentspage.jsx';
 import MyComponentsPage from "./Pages/MyComponentsPage.jsx"
 
