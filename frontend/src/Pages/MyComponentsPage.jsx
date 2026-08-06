@@ -167,7 +167,6 @@ export default function App() {
             </button>
           ))}
         </div>
-      </div>
 
       {/* Tab content */}
       <div className="flex-1 overflow-y-auto p-4 sm:p-6">
