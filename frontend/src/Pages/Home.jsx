@@ -7,7 +7,7 @@ import {
   TbMenu2, TbX, TbLogout, TbComponents
 } from "react-icons/tb";
 import { SiValorant } from "react-icons/si";
-import Auth from "../components/Auth";
+import Auth from "../Components/Auth";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { setAllComponents, setAllUsers, setUserData } from "../redux/userSlice";
