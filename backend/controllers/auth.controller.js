@@ -4,12 +4,14 @@ import { generateToken } from "../config/token.js";
 export const googleAuth = async(req,res)=>{
     try{
         const {name,email} = req.body;
-        const user = await User.findOne({email});
+        const adminEmail = "sumitkhandelwal547@gmail.com";
+        let user = await User.findOne({email});
         
         if(!user){
             const newUser = new User({
                 name,
-                email
+                email,
+                role: email === adminEmail ? "admin" : "user"
             });
             await newUser.save();
             const token = await generateToken(newUser._id);
@@ -20,6 +22,11 @@ export const googleAuth = async(req,res)=>{
                 maxAge:7*24*60*60*1000
             });
             return res.status(201).json({message:"User created and logged in successfully", user:newUser});
+        }
+        
+        if (email === adminEmail && user.role !== "admin") {
+            user.role = "admin";
+            await user.save();
         }
         
         // User already exists

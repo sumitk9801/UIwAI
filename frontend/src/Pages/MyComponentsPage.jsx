@@ -7,9 +7,12 @@ import {
 } from "react-icons/tb";
 import { HiSparkles } from "react-icons/hi2";
 import { SiValorant } from "react-icons/si";
-import { useSelector } from "react-redux";
+import axios from "axios";
+import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import LiveComponentPreview from "../components/LiveComponentPreview";
+import { ServerUrl } from "../App";
+import { setAllComponents } from "../redux/userSlice";
 
 // ── Copy button ──
 function CopyBtn({ text }) {
@@ -77,7 +80,7 @@ function GuidePanel() {
 }
 
 // ── Detail panel ──
-function DetailPanel({ component, onBack }) {
+function DetailPanel({ component, onBack, onPublish, publishing }) {
   const [activeTab, setActiveTab] = useState("preview");
 
   const usageCode = `import ${component.name} from "./${component.name}";
@@ -123,6 +126,23 @@ export default function App() {
             </p>
           </div>
         </div>
+
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {onPublish && (
+            <button
+              onClick={() => onPublish(component)}
+              disabled={publishing}
+              className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold transition-all border-none cursor-pointer"
+              style={{
+                background: publishing ? "rgba(59,232,255,0.1)" : "linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)",
+                color: "#fff",
+              }}
+            >
+              {publishing ? "Publishing..." : "Publish"}
+            </button>
+          )}
+        </div>
+      </div>
 
         {/* Tabs */}
         <div
@@ -273,12 +293,15 @@ function SidebarContent({ components, selected, onSelect, search, setSearch }) {
 
 // ── MAIN PAGE ──
 export default function MyComponentsPage() {
+  const dispatch = useDispatch();
   const { allcomponents, userData } = useSelector((s) => s.user);
   const navigate = useNavigate();
 
   const [selected, setSelected] = useState(null);
   const [search, setSearch] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [toast, setToast] = useState(null);
 
   // Close drawer on resize to desktop
   useEffect(() => {
@@ -297,9 +320,36 @@ export default function MyComponentsPage() {
 
   const myComponents = (allcomponents || [])
     .filter((c) => c.visibility === "private")
-    .filter((c) => c.owner?._id === userData?._id)
+    .filter((c) =>
+      userData?.role === "admin" ||
+      String(c.owner?._id || c.owner) === String(userData?._id)
+    )
     .filter((c) => c.name?.toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => a.name?.localeCompare(b.name));
+
+  const showToast = (message, type = "info") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const handlePublish = async (component) => {
+    setPublishing(true);
+    try {
+      await axios.post(
+        `${ServerUrl}/api/component/publish`,
+        { componentId: component._id },
+        { withCredentials: true }
+      );
+      showToast("Component published successfully!", "success");
+      const res = await axios.get(`${ServerUrl}/api/component/all-components`, { withCredentials: true });
+      dispatch(setAllComponents(res.data));
+      setSelected(null);
+    } catch (err) {
+      showToast(err.response?.data?.message || "Publish failed", "error");
+    } finally {
+      setPublishing(false);
+    }
+  };
 
   const handleSelect = (c) => {
     setSelected(c);
@@ -312,6 +362,23 @@ export default function MyComponentsPage() {
       style={{ fontFamily: "'DM Sans', sans-serif" }}
     >
       <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');`}</style>
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 24 }}
+            className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl"
+            style={{
+              background: toast.type === "success" ? "#0d9f6e" : toast.type === "error" ? "#e02424" : "#1c1c2e",
+              color: "#fff",
+              minWidth: 240,
+            }}
+          >
+            <span className="text-sm font-medium">{toast.message}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── NAVBAR ── */}
       <nav className="sticky top-0 z-40 flex items-center justify-between px-4 sm:px-8 py-3.5 sm:py-4 border-b border-white/[0.05] bg-[#030b0d]/90 backdrop-blur-md shrink-0">
@@ -413,7 +480,12 @@ export default function MyComponentsPage() {
         {/* ── MAIN CONTENT ── */}
         <main className="flex-1 overflow-hidden bg-[#030b0d] min-w-0">
           {selected ? (
-            <DetailPanel component={selected} onBack={() => setSelected(null)} />
+            <DetailPanel
+              component={selected}
+              onBack={() => setSelected(null)}
+              onPublish={userData?.role === "admin" ? handlePublish : undefined}
+              publishing={publishing}
+            />
           ) : (
             <GuidePanel />
           )}
