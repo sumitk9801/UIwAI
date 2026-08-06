@@ -21,15 +21,15 @@ export const saveComponent=async(req,res)=>{
         if(user.role==="user"){
             existing = await Component.findOne({name,owner:req.userId})
         }
-        if(existing){
-            return res.status(400).json("Component already Exits with this name");
-        }
-        const component = await Component.create({
+        const componentData = {
             name,
             code,
             props,
-            owner:req.userId
-        })
+        };
+        if (user.role === "user") {
+            componentData.owner = req.userId;
+        }
+        const component = await Component.create(componentData)
         return res.status(200).json(component);
     }
     catch(error){
@@ -54,12 +54,6 @@ export const publishComponent = async (req, res) => {
     if (!component) {
       return res.status(404).json({
         message: "Component not found"
-      });
-    }
-
-    if (component.owner.toString() !== req.userId.toString()) {
-      return res.status(403).json({
-        message: "You can only publish your own components"
       });
     }
 
@@ -162,6 +156,43 @@ export const publishComponent = async (req, res) => {
 
 export const getAllComponents = async (req, res) => {
   try {
+    // Sync exported components from the local uiwai-lib into the DB as public components.
+    // This allows admins to add new component folders inside uiwai-lib and have them
+    // show up in the Public components section without separately publishing.
+    try {
+      const libIndexPath = path.join(process.cwd(), "../uiwai-lib/src/index.js");
+      if (fs.existsSync(libIndexPath)) {
+        const indexContent = fs.readFileSync(libIndexPath, "utf8");
+        const exportRegex = /export\s*\{\s*([\w]+)\s*\}\s*from\s*["'](.+)["'];?/g;
+        let match;
+        while ((match = exportRegex.exec(indexContent)) !== null) {
+          const name = match[1];
+          const relPath = match[2]; // relative path to the component file
+          const absFile = path.join(path.dirname(libIndexPath), relPath);
+          try {
+            if (fs.existsSync(absFile)) {
+              const code = fs.readFileSync(absFile, "utf8");
+              const existing = await Component.findOne({ name, visibility: "public" });
+              if (!existing) {
+                await Component.create({
+                  name,
+                  code,
+                  props: [],
+                  visibility: "public",
+                  npmPackage: "uiwai-lib",
+                });
+              }
+            }
+          } catch (err) {
+            console.error("Error syncing component file:", absFile, err);
+          }
+        }
+      }
+    } catch (syncErr) {
+      console.error("Component sync error:", syncErr);
+      // proceed to return DB components even if sync fails
+    }
+
     const components = await Component.find()
       .populate("owner", "name email")
       .sort({ createdAt: -1 });
