@@ -2,6 +2,7 @@ import User from "../models/user.model.js";
 
 export const getCurrentUser = async (req, res) => {
   try {
+    const adminEmail = "sumitkhandelwal547@gmail.com";
     const userId = req.userId; // Assuming you have the user ID stored in the request object after authentication
     const user = await User.findById(userId);
     if(!user){
@@ -9,6 +10,11 @@ export const getCurrentUser = async (req, res) => {
     }
     if (user.aiCredits == null && user.AiCradits != null) {
       user.aiCredits = user.AiCradits;
+    }
+    if (user.email === adminEmail && user.role !== "admin") {
+      user.role = "admin";
+    }
+    if (user.isModified()) {
       await user.save();
     }
     res.status(200).json(user);
