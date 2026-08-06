@@ -9,7 +9,7 @@ import {
 import { ServerUrl } from "../App";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import LiveComponentPreview from "../components/LiveComponentPreview";
+import LiveComponentPreview from "../Components/LiveComponentPreview";
 import { setUserData } from "../redux/userSlice";
 
 // ─── Toast ────────────────────────────────────────────────────────────────────
