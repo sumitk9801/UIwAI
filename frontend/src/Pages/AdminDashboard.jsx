@@ -16,7 +16,7 @@ import { useNavigate } from "react-router-dom";
 import { setUserData } from "../redux/userSlice";
 import axios from "axios";
 import { ServerUrl } from "../App";
-import LiveComponentPreview from "../components/LiveComponentPreview";
+import LiveComponentPreview from "../Components/LiveComponentPreview";
 
 // ── CUSTOM TOOLTIP ──────────────────────────────────────────────────────────
 function CustomTooltip({ active, payload, label }) {

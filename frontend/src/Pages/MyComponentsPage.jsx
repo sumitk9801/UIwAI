@@ -10,7 +10,7 @@ import { SiValorant } from "react-icons/si";
 import axios from "axios";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import LiveComponentPreview from "../components/LiveComponentPreview";
+import LiveComponentPreview from "../Components/LiveComponentPreview";
 import { ServerUrl } from "../App";
 import { setAllComponents } from "../redux/userSlice";
 
