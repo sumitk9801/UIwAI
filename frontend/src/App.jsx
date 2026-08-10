@@ -16,7 +16,11 @@ import {
   setUserData
 } from './redux/userSlice';
 
-export const ServerUrl = import.meta.env.VITE_SERVER_URL || "http://localhost:8000";
+export const ServerUrl = import.meta.env.VITE_SERVER_URL;
+
+if (!ServerUrl) {
+  throw new Error("VITE_SERVER_URL must be defined in frontend/.env");
+}
 
 function App() {
   const dispatch = useDispatch();

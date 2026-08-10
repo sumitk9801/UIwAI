@@ -11,10 +11,16 @@ import paymentRouter from "./routers/payment.route.js";
 
 const app = express();
 
+const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:5174";
+
+if (!CLIENT_ORIGIN) {
+  throw new Error("CLIENT_ORIGIN must be defined in backend/.env");
+}
+
 app.use(
   cors({
-    origin: "http://localhost:5173", 
-    credentials: true,               
+    origin: CLIENT_ORIGIN,
+    credentials: true,
   })
 );
 
