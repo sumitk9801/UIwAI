@@ -83,19 +83,27 @@ function GuidePanel() {
 function DetailPanel({ component, onBack, onPublish, publishing }) {
   const [activeTab, setActiveTab] = useState("preview");
 
-  const usageCode = `import ${component.name} from "./${component.name}";
+  const propsText = component.props?.length
+    ? component.props.map((p) => `${p}={/* value */}`).join("\n        ")
+    : "";
 
-export default function App() {
-  return (
-    <div>
-      <${component.name}${
-        component.props?.length
-          ? `\n        ${component.props.map((p) => `${p}={/* value */}`).join("\n        ")}`
-          : ""
-      } />
-    </div>
-  );
-}`;
+  const tabs = [
+    { id: "preview", icon: TbEye, label: "Preview" },
+    { id: "code", icon: TbCode, label: "Code" },
+    { id: "guide", icon: TbBox, label: "Guide" },
+  ];
+
+  const usageCode = [
+    `import ${component.name} from "./${component.name}";`,
+    "",
+    "export default function App() {",
+    "  return (",
+    "    <div>",
+    propsText ? `      <${component.name}\n        ${propsText} />` : `      <${component.name} />`,
+    "    </div>",
+    "  );",
+    "}",
+  ].join("\n");
 
   return (
     <motion.div
@@ -144,29 +152,28 @@ export default function App() {
         </div>
       </div>
 
-        {/* Tabs */}
-        <div
-          className="flex gap-1 rounded-xl p-1 shrink-0 overflow-x-auto"
-          style={{ background: "rgba(0,0,0,0.3)" }}
-        >
-          {[
-            { id: "preview", icon: TbEye, label: "Preview" },
-            { id: "code", icon: TbCode, label: "Code" },
-            { id: "guide", icon: TbBox, label: "Guide" },
-          ].map(({ id, icon: Icon, label }) => (
+      {/* Tabs */}
+      <div
+        className="flex gap-1 rounded-xl p-1 shrink-0 overflow-x-auto"
+        style={{ background: "rgba(0,0,0,0.3)" }}
+      >
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+          return (
             <button
-              key={id}
-              onClick={() => setActiveTab(id)}
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
               className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-medium transition-all capitalize cursor-pointer border-none whitespace-nowrap"
               style={{
-                background: activeTab === id ? "rgba(59,232,255,0.15)" : "transparent",
-                color: activeTab === id ? "#3be8ff" : "rgba(255,255,255,0.35)",
+                background: activeTab === tab.id ? "rgba(59,232,255,0.15)" : "transparent",
+                color: activeTab === tab.id ? "#3be8ff" : "rgba(255,255,255,0.35)",
               }}
             >
-              <Icon size={11} /> {label}
+              <Icon size={11} /> {tab.label}
             </button>
-          ))}
-        </div>
+          );
+        })}
+      </div>
 
       {/* Tab content */}
       <div className="flex-1 overflow-y-auto p-4 sm:p-6">
