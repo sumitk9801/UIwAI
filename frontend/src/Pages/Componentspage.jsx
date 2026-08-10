@@ -9,7 +9,7 @@ import { HiSparkles } from "react-icons/hi2";
 import { SiValorant } from "react-icons/si";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import LiveComponentPreview from "../components/LiveComponentPreview";
+import LiveComponentPreview from "../Components/LiveComponentPreview";
 
 // ── Copy button ──
 function CopyBtn({ text }) {
