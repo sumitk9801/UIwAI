@@ -4,7 +4,7 @@ import { generateToken } from "../config/token.js";
 export const googleAuth = async(req,res)=>{
     try{
         const {name,email} = req.body;
-        const adminEmail = "sumitkhandelwal547@gmail.com";
+        const adminEmail = process.env.ADMIN_EMAIL; // Get the admin email from environment variables
         let user = await User.findOne({email});
         
         if(!user){
@@ -33,7 +33,7 @@ export const googleAuth = async(req,res)=>{
         const token = await generateToken(user._id);
         res.cookie("token",token,{
             httpOnly:true,
-            secure:false,
+            secure:process.env.NODE_ENV === "production",
             sameSite:"strict",
             maxAge:7*24*60*60*1000
         });

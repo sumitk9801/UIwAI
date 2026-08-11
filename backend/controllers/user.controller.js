@@ -2,7 +2,7 @@ import User from "../models/user.model.js";
 
 export const getCurrentUser = async (req, res) => {
   try {
-    const adminEmail = "sumitkhandelwal547@gmail.com";
+    const adminEmail = process.env.ADMIN_EMAIL; // Get the admin email from environment variables
     const userId = req.userId; // Assuming you have the user ID stored in the request object after authentication
     const user = await User.findById(userId);
     if(!user){
