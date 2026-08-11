@@ -78,7 +78,7 @@ export const openRouter = async (messages) => {
 
             temperature: 0.2,
 
-            max_tokens: 8000,
+            max_tokens: process.env.OPENROUTER_MAX_TOKENS || 8000,
 
             response_format: {
               type: "json_object",
