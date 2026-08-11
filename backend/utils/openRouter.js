@@ -78,7 +78,7 @@ export const openRouter = async (messages) => {
 
             temperature: 0.2,
 
-            max_tokens: 2500,
+            max_tokens: 8000,
 
             response_format: {
               type: "json_object",

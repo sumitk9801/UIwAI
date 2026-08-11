@@ -6,12 +6,12 @@ import {
   FiLoader, FiPackage, FiAlertCircle, FiCheckCircle, FiCpu,
   FiLayers, FiArrowLeft, FiRefreshCw, FiPlus,
 } from "react-icons/fi";
-import { ServerUrl } from "../App";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import LiveComponentPreview from "../Components/LiveComponentPreview";
 import { setUserData } from "../redux/userSlice";
 
+const ServerUrl = import.meta.env.VITE_SERVER_URL;
 // ─── Toast ────────────────────────────────────────────────────────────────────
 const Toast = ({ message, type, onClose }) => (
   <motion.div
@@ -65,7 +65,7 @@ export default function ComponentGenerator() {
     setIsPublished(false);
     try {
       const { data } = await axios.post(
-        ServerUrl + `/api/component/generate`,
+        `${ServerUrl}/api/component/generate`,
         { prompt },
         { withCredentials: true }
       );
@@ -101,7 +101,7 @@ export default function ComponentGenerator() {
     setSaving(true);
     try {
       const res = await axios.post(
-        ServerUrl + `/api/component/save`,
+        `${ServerUrl}/api/component/save`,
         { name: generated.name, code: generated.code, props: generated.props },
         { withCredentials: true }
       );

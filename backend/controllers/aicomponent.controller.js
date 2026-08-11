@@ -26,6 +26,8 @@ Output format:
 }
 
 Rules:
+- act as a best ui desginer and developer 
+-understand the need and then design the component accordingly(if prompt is too shot then make it more descriptive and then design the component from  best of your skills but optimally)
 - Use React functional component.
 - Export using: export const ComponentName = ({ ...props }) => { ... }
 - Import only from "react".

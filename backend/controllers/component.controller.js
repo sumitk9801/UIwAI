@@ -57,7 +57,7 @@ export const publishComponent = async (req, res) => {
       });
     }
 
-    const libPath = path.join(process.cwd(), "../virtual-ui-lib");
+    const libPath = path.join(process.cwd(), "../uiwai-lib");
 
     const componentDir = path.join(
       libPath,

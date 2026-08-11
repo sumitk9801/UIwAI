@@ -25,6 +25,7 @@ if (!ServerUrl) {
 function App() {
   const dispatch = useDispatch();
   const userData = useSelector((state) => state.user.userData);
+  console.log()
 
   const [authChecked, setAuthChecked] = useState(false);
 
