@@ -51,8 +51,7 @@ export default function PricingPage() {
       
 
       const amount =  plan.amount
-     
-
+    
       const result = await axios.post(ServerUrl + "/api/payment/order" , {
         amount: amount,
         aiCredits: plan.aiCredits,
@@ -63,7 +62,7 @@ export default function PricingPage() {
       key: import.meta.env.VITE_RAZORPAY_KEY_ID,
       amount: result.data.amount,
       currency: "INR",
-      name: "Virtual.AI",
+      name: "SUMIT KHANDELWAL",
       description: `${plan.name} - ${plan.credits} Credits`,
       order_id: result.data.id,
 

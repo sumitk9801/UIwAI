@@ -3,7 +3,7 @@ import razorpay from "../utils/razorpay.js";
 import Payment from "../models/payment.model.js";
 import User from "../models/user.model.js";
 
-export const createOrder = async (req,res) => {
+export const  createOrder = async (req,res) => {
     try {
         const {amount, aiCredits} = req.body;
           if (!amount || !aiCredits) {
